@@ -94,7 +94,6 @@ function burst() {
 
 /* -------------------------------------------------------
    LIGHTWEIGHT ORIGINAL WEB AUDIO CHIMES
-   No external copyrighted audio is embedded.
 ------------------------------------------------------- */
 
 let audioCtx = null;
@@ -136,7 +135,6 @@ function playChime() {
       );
 
       o.start(now + i * 0.12);
-
       o.stop(now + i * 0.12 + 0.5);
     });
   } catch (e) {}
@@ -161,13 +159,13 @@ let found = 0;
   const b = document.createElement('button');
 
   b.className = 'floating-heart';
-
   b.textContent = i === 2 ? '💗' : '♡';
 
   b.style.left = pos[0] + '%';
   b.style.top = pos[1] + '%';
 
-  b.style.animationDelay = i * 0.18 + 's';
+  b.style.animationDelay =
+    i * 0.18 + 's';
 
   b.addEventListener('click', () => {
     if (b.dataset.found) return;
@@ -364,7 +362,6 @@ selectSingle(timeChoices);
 
 /* -------------------------------------------------------
    AFTER-DINNER ACTIVITIES
-   Maximum 4 selections
 ------------------------------------------------------- */
 
 activityChoices.forEach(btn => {
@@ -380,7 +377,6 @@ activityChoices.forEach(btn => {
       selected.length >= 4
     ) {
       toast('Choose up to 4 activities');
-
       return;
     }
 
@@ -439,6 +435,7 @@ function prettyDate(v) {
 document
   .getElementById('confirmDateBtn')
   .addEventListener('click', () => {
+
     const place =
       document.querySelector(
         '#placeChoices .selected'
@@ -462,8 +459,6 @@ document
         'plannerError'
       );
 
-    /* Validation */
-
     if (
       !place ||
       !dateInput.value ||
@@ -477,8 +472,6 @@ document
     }
 
     err.textContent = '';
-
-    /* Put selections into summary */
 
     document.getElementById(
       'summaryPlace'
@@ -502,11 +495,7 @@ document
     ).textContent =
       acts.join(' · ');
 
-    /* Hide planner */
-
     planner.classList.add('hidden');
-
-    /* Show final card */
 
     document
       .getElementById('dateCard')
@@ -524,8 +513,8 @@ document
   });
 
 /* -------------------------------------------------------
-   FINAL WHATSAPP BUTTON
-------------------------------------------------------- */
+   ESTHER SUBMITS HER DINNER PLAN
+   ------------------------------------------------------- */
 
 document
   .getElementById('finalDateBtn')
@@ -552,37 +541,44 @@ document
       ).textContent;
 
     /*
-      WhatsApp number:
+      Your WhatsApp number.
+      International format:
       +233 55 655 6080
-
-      WhatsApp requires the international format
-      without +, spaces, or leading zero.
+      becomes:
+      233556556080
     */
 
-    const number =
-      '233556556080';
-
-    const msg =
-`ESTHER'S BIRTHDAY DINNER 💗
-
-Where: ${place}
-Date: ${date}
-Time: ${time}
-After dinner: ${after}
-
-Before I leave for school, I want to spend this beautiful evening with you. Happy birthday in advance, my love. ❤️`;
+    const number = '233556556080';
 
     /*
-      encodeURIComponent makes sure spaces,
-      emojis and special characters work correctly.
+      This message is written as
+      Esther submitting her choices.
+
+      Nothing here speaks on your behalf.
     */
+
+    const msg =
+`ESTHER'S BIRTHDAY DINNER PLAN 💗
+
+Dinner place:
+${place}
+
+Date:
+${date}
+
+Time:
+${time}
+
+After dinner:
+${after}`;
 
     const url =
       `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
 
     /*
-      Open the WhatsApp chat immediately
-      with the message already prepared.
+      Open your WhatsApp chat with
+      Esther's completed dinner plan
+      already typed into the message box.
     */
 
     window.open(
@@ -593,7 +589,7 @@ Before I leave for school, I want to spend this beautiful evening with you. Happ
     document.getElementById(
       'dateResponse'
     ).textContent =
-      'Your dinner plan is ready. 💗 WhatsApp is opening our chat so you can send it to me.';
+      'Your dinner plan has been prepared. 💗 WhatsApp is opening so you can submit it.';
 
     burst();
     playChime();
