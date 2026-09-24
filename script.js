@@ -1,13 +1,17 @@
-const intro = document.getElementById('intro'),
-  startBtn = document.getElementById('startBtn'),
-  shell = document.getElementById('gameShell');
+const intro = document.getElementById('intro');
+const startBtn = document.getElementById('startBtn');
+const shell = document.getElementById('gameShell');
 
-const levels = [...document.querySelectorAll('.level')],
-  progress = document.getElementById('progressBar'),
-  levelLabel = document.getElementById('levelLabel');
+const levels = [...document.querySelectorAll('.level')];
+const progress = document.getElementById('progressBar');
+const levelLabel = document.getElementById('levelLabel');
 
-let current = 0,
-  soundOn = true;
+let current = 0;
+let soundOn = true;
+
+/* =========================================================
+   LEVEL NAVIGATION
+========================================================= */
 
 function showLevel(n) {
   current = n;
@@ -30,15 +34,25 @@ function showLevel(n) {
   });
 }
 
+/* =========================================================
+   START GAME
+========================================================= */
+
 startBtn.addEventListener('click', () => {
   intro.classList.add('out');
   shell.classList.remove('hidden');
 
-  setTimeout(() => intro.remove(), 850);
+  setTimeout(() => {
+    intro.remove();
+  }, 850);
 
   showLevel(0);
   playChime();
 });
+
+/* =========================================================
+   TOAST MESSAGE
+========================================================= */
 
 function toast(msg) {
   const t = document.getElementById('toast');
@@ -52,6 +66,10 @@ function toast(msg) {
     t.classList.remove('show');
   }, 1800);
 }
+
+/* =========================================================
+   CONFETTI / HEART BURST
+========================================================= */
 
 function burst() {
   const box = document.getElementById('confetti');
@@ -88,13 +106,15 @@ function burst() {
 
     box.appendChild(el);
 
-    setTimeout(() => el.remove(), 1900);
+    setTimeout(() => {
+      el.remove();
+    }, 1900);
   }
 }
 
-/* -------------------------------------------------------
-   LIGHTWEIGHT ORIGINAL WEB AUDIO CHIMES
-------------------------------------------------------- */
+/* =========================================================
+   LIGHTWEIGHT ORIGINAL WEB AUDIO
+========================================================= */
 
 let audioCtx = null;
 
@@ -110,39 +130,41 @@ function playChime() {
     const now = audioCtx.currentTime;
 
     [523.25, 659.25, 783.99].forEach((f, i) => {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
 
-      o.type = 'sine';
-      o.frequency.value = f;
+      oscillator.type = 'sine';
+      oscillator.frequency.value = f;
 
-      o.connect(g);
-      g.connect(audioCtx.destination);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
 
-      g.gain.setValueAtTime(
+      gain.gain.setValueAtTime(
         0.0001,
         now + i * 0.12
       );
 
-      g.gain.exponentialRampToValueAtTime(
+      gain.gain.exponentialRampToValueAtTime(
         0.045,
         now + i * 0.12 + 0.03
       );
 
-      g.gain.exponentialRampToValueAtTime(
+      gain.gain.exponentialRampToValueAtTime(
         0.0001,
         now + i * 0.12 + 0.45
       );
 
-      o.start(now + i * 0.12);
-      o.stop(now + i * 0.12 + 0.5);
+      oscillator.start(now + i * 0.12);
+      oscillator.stop(now + i * 0.12 + 0.5);
     });
-  } catch (e) {}
+  } catch (e) {
+    // Audio is optional.
+  }
 }
 
-/* -------------------------------------------------------
+/* =========================================================
    LEVEL 1 — CATCH THE HEARTS
-------------------------------------------------------- */
+========================================================= */
 
 const arena = document.getElementById('heartArena');
 const countEl = document.getElementById('heartCount');
@@ -156,32 +178,36 @@ let found = 0;
   [82, 70],
   [51, 43]
 ].forEach((pos, i) => {
-  const b = document.createElement('button');
+  const heart = document.createElement('button');
 
-  b.className = 'floating-heart';
-  b.textContent = i === 2 ? '💗' : '♡';
+  heart.className = 'floating-heart';
 
-  b.style.left = pos[0] + '%';
-  b.style.top = pos[1] + '%';
+  heart.textContent =
+    i === 2 ? '💗' : '♡';
 
-  b.style.animationDelay =
+  heart.style.left = pos[0] + '%';
+  heart.style.top = pos[1] + '%';
+
+  heart.style.animationDelay =
     i * 0.18 + 's';
 
-  b.addEventListener('click', () => {
-    if (b.dataset.found) return;
+  heart.addEventListener('click', () => {
+    if (heart.dataset.found) return;
 
-    b.dataset.found = '1';
+    heart.dataset.found = '1';
 
     found++;
 
     countEl.textContent = found;
 
-    b.style.transform = 'scale(2)';
-    b.style.opacity = '0';
+    heart.style.transform = 'scale(2)';
+    heart.style.opacity = '0';
 
     playChime();
 
-    setTimeout(() => b.remove(), 250);
+    setTimeout(() => {
+      heart.remove();
+    }, 250);
 
     if (found === 5) {
       toast('All hearts found! 💕');
@@ -194,12 +220,12 @@ let found = 0;
     }
   });
 
-  arena.appendChild(b);
+  arena.appendChild(heart);
 });
 
-/* -------------------------------------------------------
+/* =========================================================
    LEVEL 2 — QUIZ
-------------------------------------------------------- */
+========================================================= */
 
 document.querySelectorAll('.answer').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -220,19 +246,19 @@ document.querySelectorAll('.answer').forEach(btn => {
   });
 });
 
-/* -------------------------------------------------------
+/* =========================================================
    LEVEL 3 — TRUTH CARD
-------------------------------------------------------- */
+========================================================= */
 
 document.querySelectorAll('.truth-card').forEach(btn => {
   btn.addEventListener('click', () => {
-    const msg =
+    const message =
       document.getElementById('truthMessage');
 
     if (btn.dataset.correct === 'true') {
       btn.classList.add('correct');
 
-      msg.textContent =
+      message.textContent =
         'Exactly. That is the kind of evening I want with you. ❤️';
 
       burst();
@@ -244,7 +270,7 @@ document.querySelectorAll('.truth-card').forEach(btn => {
     } else {
       btn.classList.add('wrong');
 
-      msg.textContent =
+      message.textContent =
         'Not quite. Think about what would make the evening feel special.';
 
       setTimeout(() => {
@@ -254,14 +280,17 @@ document.querySelectorAll('.truth-card').forEach(btn => {
   });
 });
 
-/* -------------------------------------------------------
+/* =========================================================
    LEVEL 4 — ENVELOPE
-------------------------------------------------------- */
+========================================================= */
 
 document
   .getElementById('envelope')
   .addEventListener('click', function () {
-    if (this.classList.contains('open')) return;
+
+    if (this.classList.contains('open')) {
+      return;
+    }
 
     this.classList.add('open');
 
@@ -272,13 +301,14 @@ document
     }, 1100);
   });
 
-/* -------------------------------------------------------
+/* =========================================================
    SOUND BUTTON
-------------------------------------------------------- */
+========================================================= */
 
 document
   .getElementById('soundBtn')
   .addEventListener('click', () => {
+
     soundOn = !soundOn;
 
     document.getElementById('soundBtn').textContent =
@@ -295,9 +325,9 @@ document
     );
   });
 
-/* -------------------------------------------------------
+/* =========================================================
    DINNER PLANNER
-------------------------------------------------------- */
+========================================================= */
 
 const planner =
   document.getElementById('datePlanner');
@@ -320,11 +350,14 @@ const activityChoices =
     '#activityChoices button'
   );
 
-/* Open planner */
+/* =========================================================
+   OPEN DINNER PLANNER
+========================================================= */
 
 document
   .getElementById('planDateBtn')
   .addEventListener('click', () => {
+
     planner.classList.remove('hidden');
 
     document
@@ -339,37 +372,45 @@ document
     playChime();
   });
 
-/* -------------------------------------------------------
-   SINGLE SELECT OPTIONS
-------------------------------------------------------- */
+/* =========================================================
+   SINGLE-SELECTION OPTIONS
+========================================================= */
 
 function selectSingle(list) {
+
   list.forEach(btn => {
+
     btn.addEventListener('click', () => {
-      list.forEach(x => {
-        x.classList.remove('selected');
+
+      list.forEach(option => {
+        option.classList.remove('selected');
       });
 
       btn.classList.add('selected');
 
       playChime();
     });
+
   });
+
 }
 
 selectSingle(placeChoices);
 selectSingle(timeChoices);
 
-/* -------------------------------------------------------
+/* =========================================================
    AFTER-DINNER ACTIVITIES
-------------------------------------------------------- */
+   MAXIMUM 4
+========================================================= */
 
 activityChoices.forEach(btn => {
+
   btn.addEventListener('click', () => {
+
     const selected = [
       ...activityChoices
-    ].filter(x =>
-      x.classList.contains('selected')
+    ].filter(option =>
+      option.classList.contains('selected')
     );
 
     if (
@@ -384,11 +425,12 @@ activityChoices.forEach(btn => {
 
     playChime();
   });
+
 });
 
-/* -------------------------------------------------------
+/* =========================================================
    DATE SETUP
-------------------------------------------------------- */
+========================================================= */
 
 const today = new Date();
 
@@ -402,7 +444,7 @@ dateInput.min =
   minDate.toISOString().split('T')[0];
 
 /*
-   Esther's birthday
+   Esther's birthday:
    October 4, 2026
 */
 
@@ -410,11 +452,12 @@ const birthday = '2026-10-04';
 
 dateInput.value = birthday;
 
-/* -------------------------------------------------------
-   PRETTY DATE
-------------------------------------------------------- */
+/* =========================================================
+   FORMAT DATE
+========================================================= */
 
-function prettyDate(v) {
+function prettyDate(value) {
+
   return new Intl.DateTimeFormat(
     'en-US',
     {
@@ -424,13 +467,14 @@ function prettyDate(v) {
       year: 'numeric'
     }
   ).format(
-    new Date(v + 'T12:00:00')
+    new Date(value + 'T12:00:00')
   );
+
 }
 
-/* -------------------------------------------------------
+/* =========================================================
    CONFIRM DINNER PLAN
-------------------------------------------------------- */
+========================================================= */
 
 document
   .getElementById('confirmDateBtn')
@@ -446,32 +490,41 @@ document
         '#timeChoices .selected'
       );
 
-    const acts = [
+    const activities = [
       ...activityChoices
     ]
-      .filter(x =>
-        x.classList.contains('selected')
+      .filter(option =>
+        option.classList.contains('selected')
       )
-      .map(x => x.dataset.value);
+      .map(option =>
+        option.dataset.value
+      );
 
-    const err =
+    const error =
       document.getElementById(
         'plannerError'
       );
+
+    /* Validation */
 
     if (
       !place ||
       !dateInput.value ||
       !time ||
-      acts.length < 2
+      activities.length < 2
     ) {
-      err.textContent =
+
+      error.textContent =
         'Pick a dinner place, date, time, and at least 2 after-dinner moments. 💗';
 
       return;
     }
 
-    err.textContent = '';
+    error.textContent = '';
+
+    /* =====================================================
+       DISPLAY ESTHER'S SELECTED PLAN
+    ===================================================== */
 
     document.getElementById(
       'summaryPlace'
@@ -493,9 +546,13 @@ document
     document.getElementById(
       'summaryActivities'
     ).textContent =
-      acts.join(' · ');
+      activities.join(' · ');
+
+    /* Hide planner */
 
     planner.classList.add('hidden');
+
+    /* Show final dinner card */
 
     document
       .getElementById('dateCard')
@@ -512,13 +569,17 @@ document
     playChime();
   });
 
-/* -------------------------------------------------------
-   ESTHER SUBMITS HER DINNER PLAN
-   ------------------------------------------------------- */
+/* =========================================================
+   ESTHER SUBMITS HER DINNER PLAN TO WHATSAPP
+========================================================= */
 
 document
   .getElementById('finalDateBtn')
   .addEventListener('click', () => {
+
+    /* -----------------------------------------------------
+       GET ESTHER'S SELECTED DETAILS
+    ----------------------------------------------------- */
 
     const place =
       document.getElementById(
@@ -535,29 +596,37 @@ document
         'summaryTime'
       ).textContent;
 
-    const after =
+    const afterDinner =
       document.getElementById(
         'summaryActivities'
       ).textContent;
 
-    /*
-      Your WhatsApp number.
-      International format:
-      +233 55 655 6080
-      becomes:
-      233556556080
-    */
+    /* -----------------------------------------------------
+       YOUR WHATSAPP NUMBER
 
-    const number = '233556556080';
+       +233 55 655 6080
+       International format:
+       233556556080
+    ----------------------------------------------------- */
 
-    /*
-      This message is written as
-      Esther submitting her choices.
+    const whatsappNumber =
+      '233556556080';
 
-      Nothing here speaks on your behalf.
-    */
+    /* -----------------------------------------------------
+       MESSAGE SENT TO YOU
 
-    const msg =
+       This message contains ONLY Esther's submission.
+
+       There is:
+       - No "before I leave for school"
+       - No romantic message from you
+       - No message written as if you are Esther
+       - No extra invitation text
+
+       It simply submits her choices.
+    ----------------------------------------------------- */
+
+    const message =
 `ESTHER'S BIRTHDAY DINNER PLAN 💗
 
 Dinner place:
@@ -570,26 +639,32 @@ Time:
 ${time}
 
 After dinner:
-${after}`;
+${afterDinner}`;
 
-    const url =
-      `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
+    /* -----------------------------------------------------
+       CREATE WHATSAPP URL
+    ----------------------------------------------------- */
 
-    /*
-      Open your WhatsApp chat with
-      Esther's completed dinner plan
-      already typed into the message box.
-    */
+    const whatsappUrl =
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+    /* -----------------------------------------------------
+       OPEN YOUR WHATSAPP CHAT
+    ----------------------------------------------------- */
 
     window.open(
-      url,
+      whatsappUrl,
       '_blank'
     );
+
+    /* -----------------------------------------------------
+       CONFIRMATION ON THE WEBSITE
+    ----------------------------------------------------- */
 
     document.getElementById(
       'dateResponse'
     ).textContent =
-      'Your dinner plan has been prepared. 💗 WhatsApp is opening so you can submit it.';
+      'Your dinner plan has been submitted. 💗';
 
     burst();
     playChime();
