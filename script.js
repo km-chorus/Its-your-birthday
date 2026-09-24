@@ -1,24 +1,600 @@
-const intro=document.getElementById('intro'),startBtn=document.getElementById('startBtn'),shell=document.getElementById('gameShell');
-const levels=[...document.querySelectorAll('.level')],progress=document.getElementById('progressBar'),levelLabel=document.getElementById('levelLabel');
-let current=0,soundOn=true;
-function showLevel(n){current=n;levels.forEach((el,i)=>el.classList.toggle('active',i===n));progress.style.width=(n<4?((n+1)/4)*100:100)+'%';levelLabel.textContent=n<4?`LEVEL ${String(n+1).padStart(2,'0')}`:'DINNER PLAN';window.scrollTo({top:0,behavior:'smooth'})}
-startBtn.addEventListener('click',()=>{intro.classList.add('out');shell.classList.remove('hidden');setTimeout(()=>intro.remove(),850);showLevel(0);playChime()});
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),1800)}
-function burst(){const box=document.getElementById('confetti'),symbols=['💗','💕','✨','♡','🎀','🌸','⭐','🎂'];for(let i=0;i<34;i++){const el=document.createElement('i');el.textContent=symbols[Math.floor(Math.random()*symbols.length)];el.style.setProperty('--x',(Math.random()-.5)*innerWidth*1.2+'px');el.style.setProperty('--y',(Math.random()-.5)*innerHeight*1.2+'px');el.style.animationDelay=Math.random()*.15+'s';box.appendChild(el);setTimeout(()=>el.remove(),1900)}}
-// Lightweight original Web Audio chimes; no external copyrighted audio is embedded.
-let audioCtx=null;
-function playChime(){if(!soundOn)return;try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const now=audioCtx.currentTime;[523.25,659.25,783.99].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(.0001,now+i*.12);g.gain.exponentialRampToValueAtTime(.045,now+i*.12+.03);g.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.45);o.start(now+i*.12);o.stop(now+i*.12+.5)})}catch(e){}}
-const arena=document.getElementById('heartArena'),countEl=document.getElementById('heartCount');let found=0;[[16,18],[75,21],[30,72],[82,70],[51,43]].forEach((pos,i)=>{const b=document.createElement('button');b.className='floating-heart';b.textContent=i===2?'💗':'♡';b.style.left=pos[0]+'%';b.style.top=pos[1]+'%';b.style.animationDelay=i*.18+'s';b.addEventListener('click',()=>{if(b.dataset.found)return;b.dataset.found='1';found++;countEl.textContent=found;b.style.transform='scale(2)';b.style.opacity='0';playChime();setTimeout(()=>b.remove(),250);if(found===5){toast('All hearts found! 💕');burst();setTimeout(()=>showLevel(1),900)}});arena.appendChild(b)});
-document.querySelectorAll('.answer').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('quizReply').textContent=btn.dataset.reply;document.querySelectorAll('.answer').forEach(x=>x.disabled=true);playChime();setTimeout(()=>showLevel(2),1500)}));
-document.querySelectorAll('.truth-card').forEach(btn=>btn.addEventListener('click',()=>{const msg=document.getElementById('truthMessage');if(btn.dataset.correct==='true'){btn.classList.add('correct');msg.textContent='Exactly. That is the kind of evening I want with you. ❤️';burst();playChime();setTimeout(()=>showLevel(3),1000)}else{btn.classList.add('wrong');msg.textContent='Not quite. Think about what would make the evening feel special.';setTimeout(()=>btn.classList.remove('wrong'),450)}}));
-document.getElementById('envelope').addEventListener('click',function(){if(this.classList.contains('open'))return;this.classList.add('open');playChime();setTimeout(()=>showLevel(4),1100)});
-document.getElementById('soundBtn').addEventListener('click',()=>{soundOn=!soundOn;document.getElementById('soundBtn').textContent=soundOn?'♪':'×';if(soundOn)playChime();toast(soundOn?'Sound on':'Sound off')});
-const planner=document.getElementById('datePlanner'),dateInput=document.getElementById('dateInput'),placeChoices=document.querySelectorAll('#placeChoices button'),timeChoices=document.querySelectorAll('#timeChoices button'),activityChoices=document.querySelectorAll('#activityChoices button');
-document.getElementById('planDateBtn').addEventListener('click',()=>{planner.classList.remove('hidden');document.getElementById('planDateBtn').classList.add('hidden');planner.scrollIntoView({behavior:'smooth',block:'start'});playChime()});
-function selectSingle(list){list.forEach(btn=>btn.addEventListener('click',()=>{list.forEach(x=>x.classList.remove('selected'));btn.classList.add('selected');playChime()}))}selectSingle(placeChoices);selectSingle(timeChoices);
-activityChoices.forEach(btn=>btn.addEventListener('click',()=>{const selected=[...activityChoices].filter(x=>x.classList.contains('selected'));if(!btn.classList.contains('selected')&&selected.length>=4){toast('Choose up to 4 activities');return}btn.classList.toggle('selected');playChime()}));
-const today=new Date();const minDate=new Date(today);minDate.setDate(today.getDate()+1);dateInput.min=minDate.toISOString().split('T')[0];
-const birthday='2026-10-04';dateInput.value=birthday;
-function prettyDate(v){return new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date(v+'T12:00:00'))}
-document.getElementById('confirmDateBtn').addEventListener('click',()=>{const place=document.querySelector('#placeChoices .selected'),time=document.querySelector('#timeChoices .selected'),acts=[...activityChoices].filter(x=>x.classList.contains('selected')).map(x=>x.dataset.value),err=document.getElementById('plannerError');if(!place||!dateInput.value||!time||acts.length<2){err.textContent='Pick a dinner place, date, time, and at least 2 after-dinner moments. 💗';return}err.textContent='';document.getElementById('summaryPlace').textContent=place.dataset.value;document.getElementById('summaryDate').textContent=prettyDate(dateInput.value);document.getElementById('summaryTime').textContent=time.dataset.value;document.getElementById('summaryActivities').textContent=acts.join(' · ');planner.classList.add('hidden');document.getElementById('dateCard').classList.remove('hidden');document.getElementById('dateCard').scrollIntoView({behavior:'smooth',block:'center'});burst();playChime()});
-document.getElementById('finalDateBtn').addEventListener('click',()=>{const place=document.getElementById('summaryPlace').textContent,date=document.getElementById('summaryDate').textContent,time=document.getElementById('summaryTime').textContent,after=document.getElementById('summaryActivities').textContent;const msg=`ESTHER'S BIRTHDAY DINNER 💗%0A%0AWhere: ${place}%0ADate: ${date}%0ATime: ${time}%0AAfter dinner: ${after}%0A%0ABefore I leave for school, I want to spend this beautiful evening with you. Happy birthday in advance, my love. ❤️`;const number=window.WHATSAPP_NUMBER||'';const url=233556556080?`https://wa.me/${number}?text=${msg}`:`https://wa.me/?text=${msg}`;window.open(url,'_blank');document.getElementById('dateResponse').textContent='Your dinner plan is ready. 💗 WhatsApp is opening so you can send it to me.';burst();playChime()});
+const intro = document.getElementById('intro'),
+  startBtn = document.getElementById('startBtn'),
+  shell = document.getElementById('gameShell');
+
+const levels = [...document.querySelectorAll('.level')],
+  progress = document.getElementById('progressBar'),
+  levelLabel = document.getElementById('levelLabel');
+
+let current = 0,
+  soundOn = true;
+
+function showLevel(n) {
+  current = n;
+
+  levels.forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+
+  progress.style.width =
+    (n < 4 ? ((n + 1) / 4) * 100 : 100) + '%';
+
+  levelLabel.textContent =
+    n < 4
+      ? `LEVEL ${String(n + 1).padStart(2, '0')}`
+      : 'DINNER PLAN';
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+startBtn.addEventListener('click', () => {
+  intro.classList.add('out');
+  shell.classList.remove('hidden');
+
+  setTimeout(() => intro.remove(), 850);
+
+  showLevel(0);
+  playChime();
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+
+  t.textContent = msg;
+  t.classList.add('show');
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+  }, 1800);
+}
+
+function burst() {
+  const box = document.getElementById('confetti');
+
+  const symbols = [
+    '💗',
+    '💕',
+    '✨',
+    '♡',
+    '🎀',
+    '🌸',
+    '⭐',
+    '🎂'
+  ];
+
+  for (let i = 0; i < 34; i++) {
+    const el = document.createElement('i');
+
+    el.textContent =
+      symbols[Math.floor(Math.random() * symbols.length)];
+
+    el.style.setProperty(
+      '--x',
+      (Math.random() - 0.5) * innerWidth * 1.2 + 'px'
+    );
+
+    el.style.setProperty(
+      '--y',
+      (Math.random() - 0.5) * innerHeight * 1.2 + 'px'
+    );
+
+    el.style.animationDelay =
+      Math.random() * 0.15 + 's';
+
+    box.appendChild(el);
+
+    setTimeout(() => el.remove(), 1900);
+  }
+}
+
+/* -------------------------------------------------------
+   LIGHTWEIGHT ORIGINAL WEB AUDIO CHIMES
+   No external copyrighted audio is embedded.
+------------------------------------------------------- */
+
+let audioCtx = null;
+
+function playChime() {
+  if (!soundOn) return;
+
+  try {
+    audioCtx =
+      audioCtx ||
+      new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+    const now = audioCtx.currentTime;
+
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+
+      o.type = 'sine';
+      o.frequency.value = f;
+
+      o.connect(g);
+      g.connect(audioCtx.destination);
+
+      g.gain.setValueAtTime(
+        0.0001,
+        now + i * 0.12
+      );
+
+      g.gain.exponentialRampToValueAtTime(
+        0.045,
+        now + i * 0.12 + 0.03
+      );
+
+      g.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + i * 0.12 + 0.45
+      );
+
+      o.start(now + i * 0.12);
+
+      o.stop(now + i * 0.12 + 0.5);
+    });
+  } catch (e) {}
+}
+
+/* -------------------------------------------------------
+   LEVEL 1 — CATCH THE HEARTS
+------------------------------------------------------- */
+
+const arena = document.getElementById('heartArena');
+const countEl = document.getElementById('heartCount');
+
+let found = 0;
+
+[
+  [16, 18],
+  [75, 21],
+  [30, 72],
+  [82, 70],
+  [51, 43]
+].forEach((pos, i) => {
+  const b = document.createElement('button');
+
+  b.className = 'floating-heart';
+
+  b.textContent = i === 2 ? '💗' : '♡';
+
+  b.style.left = pos[0] + '%';
+  b.style.top = pos[1] + '%';
+
+  b.style.animationDelay = i * 0.18 + 's';
+
+  b.addEventListener('click', () => {
+    if (b.dataset.found) return;
+
+    b.dataset.found = '1';
+
+    found++;
+
+    countEl.textContent = found;
+
+    b.style.transform = 'scale(2)';
+    b.style.opacity = '0';
+
+    playChime();
+
+    setTimeout(() => b.remove(), 250);
+
+    if (found === 5) {
+      toast('All hearts found! 💕');
+
+      burst();
+
+      setTimeout(() => {
+        showLevel(1);
+      }, 900);
+    }
+  });
+
+  arena.appendChild(b);
+});
+
+/* -------------------------------------------------------
+   LEVEL 2 — QUIZ
+------------------------------------------------------- */
+
+document.querySelectorAll('.answer').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('quizReply').textContent =
+      btn.dataset.reply;
+
+    document
+      .querySelectorAll('.answer')
+      .forEach(x => {
+        x.disabled = true;
+      });
+
+    playChime();
+
+    setTimeout(() => {
+      showLevel(2);
+    }, 1500);
+  });
+});
+
+/* -------------------------------------------------------
+   LEVEL 3 — TRUTH CARD
+------------------------------------------------------- */
+
+document.querySelectorAll('.truth-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const msg =
+      document.getElementById('truthMessage');
+
+    if (btn.dataset.correct === 'true') {
+      btn.classList.add('correct');
+
+      msg.textContent =
+        'Exactly. That is the kind of evening I want with you. ❤️';
+
+      burst();
+      playChime();
+
+      setTimeout(() => {
+        showLevel(3);
+      }, 1000);
+    } else {
+      btn.classList.add('wrong');
+
+      msg.textContent =
+        'Not quite. Think about what would make the evening feel special.';
+
+      setTimeout(() => {
+        btn.classList.remove('wrong');
+      }, 450);
+    }
+  });
+});
+
+/* -------------------------------------------------------
+   LEVEL 4 — ENVELOPE
+------------------------------------------------------- */
+
+document
+  .getElementById('envelope')
+  .addEventListener('click', function () {
+    if (this.classList.contains('open')) return;
+
+    this.classList.add('open');
+
+    playChime();
+
+    setTimeout(() => {
+      showLevel(4);
+    }, 1100);
+  });
+
+/* -------------------------------------------------------
+   SOUND BUTTON
+------------------------------------------------------- */
+
+document
+  .getElementById('soundBtn')
+  .addEventListener('click', () => {
+    soundOn = !soundOn;
+
+    document.getElementById('soundBtn').textContent =
+      soundOn ? '♪' : '×';
+
+    if (soundOn) {
+      playChime();
+    }
+
+    toast(
+      soundOn
+        ? 'Sound on'
+        : 'Sound off'
+    );
+  });
+
+/* -------------------------------------------------------
+   DINNER PLANNER
+------------------------------------------------------- */
+
+const planner =
+  document.getElementById('datePlanner');
+
+const dateInput =
+  document.getElementById('dateInput');
+
+const placeChoices =
+  document.querySelectorAll(
+    '#placeChoices button'
+  );
+
+const timeChoices =
+  document.querySelectorAll(
+    '#timeChoices button'
+  );
+
+const activityChoices =
+  document.querySelectorAll(
+    '#activityChoices button'
+  );
+
+/* Open planner */
+
+document
+  .getElementById('planDateBtn')
+  .addEventListener('click', () => {
+    planner.classList.remove('hidden');
+
+    document
+      .getElementById('planDateBtn')
+      .classList.add('hidden');
+
+    planner.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+    playChime();
+  });
+
+/* -------------------------------------------------------
+   SINGLE SELECT OPTIONS
+------------------------------------------------------- */
+
+function selectSingle(list) {
+  list.forEach(btn => {
+    btn.addEventListener('click', () => {
+      list.forEach(x => {
+        x.classList.remove('selected');
+      });
+
+      btn.classList.add('selected');
+
+      playChime();
+    });
+  });
+}
+
+selectSingle(placeChoices);
+selectSingle(timeChoices);
+
+/* -------------------------------------------------------
+   AFTER-DINNER ACTIVITIES
+   Maximum 4 selections
+------------------------------------------------------- */
+
+activityChoices.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const selected = [
+      ...activityChoices
+    ].filter(x =>
+      x.classList.contains('selected')
+    );
+
+    if (
+      !btn.classList.contains('selected') &&
+      selected.length >= 4
+    ) {
+      toast('Choose up to 4 activities');
+
+      return;
+    }
+
+    btn.classList.toggle('selected');
+
+    playChime();
+  });
+});
+
+/* -------------------------------------------------------
+   DATE SETUP
+------------------------------------------------------- */
+
+const today = new Date();
+
+const minDate = new Date(today);
+
+minDate.setDate(
+  today.getDate() + 1
+);
+
+dateInput.min =
+  minDate.toISOString().split('T')[0];
+
+/*
+   Esther's birthday
+   October 4, 2026
+*/
+
+const birthday = '2026-10-04';
+
+dateInput.value = birthday;
+
+/* -------------------------------------------------------
+   PRETTY DATE
+------------------------------------------------------- */
+
+function prettyDate(v) {
+  return new Intl.DateTimeFormat(
+    'en-US',
+    {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    }
+  ).format(
+    new Date(v + 'T12:00:00')
+  );
+}
+
+/* -------------------------------------------------------
+   CONFIRM DINNER PLAN
+------------------------------------------------------- */
+
+document
+  .getElementById('confirmDateBtn')
+  .addEventListener('click', () => {
+    const place =
+      document.querySelector(
+        '#placeChoices .selected'
+      );
+
+    const time =
+      document.querySelector(
+        '#timeChoices .selected'
+      );
+
+    const acts = [
+      ...activityChoices
+    ]
+      .filter(x =>
+        x.classList.contains('selected')
+      )
+      .map(x => x.dataset.value);
+
+    const err =
+      document.getElementById(
+        'plannerError'
+      );
+
+    /* Validation */
+
+    if (
+      !place ||
+      !dateInput.value ||
+      !time ||
+      acts.length < 2
+    ) {
+      err.textContent =
+        'Pick a dinner place, date, time, and at least 2 after-dinner moments. 💗';
+
+      return;
+    }
+
+    err.textContent = '';
+
+    /* Put selections into summary */
+
+    document.getElementById(
+      'summaryPlace'
+    ).textContent =
+      place.dataset.value;
+
+    document.getElementById(
+      'summaryDate'
+    ).textContent =
+      prettyDate(
+        dateInput.value
+      );
+
+    document.getElementById(
+      'summaryTime'
+    ).textContent =
+      time.dataset.value;
+
+    document.getElementById(
+      'summaryActivities'
+    ).textContent =
+      acts.join(' · ');
+
+    /* Hide planner */
+
+    planner.classList.add('hidden');
+
+    /* Show final card */
+
+    document
+      .getElementById('dateCard')
+      .classList.remove('hidden');
+
+    document
+      .getElementById('dateCard')
+      .scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+    burst();
+    playChime();
+  });
+
+/* -------------------------------------------------------
+   FINAL WHATSAPP BUTTON
+------------------------------------------------------- */
+
+document
+  .getElementById('finalDateBtn')
+  .addEventListener('click', () => {
+
+    const place =
+      document.getElementById(
+        'summaryPlace'
+      ).textContent;
+
+    const date =
+      document.getElementById(
+        'summaryDate'
+      ).textContent;
+
+    const time =
+      document.getElementById(
+        'summaryTime'
+      ).textContent;
+
+    const after =
+      document.getElementById(
+        'summaryActivities'
+      ).textContent;
+
+    /*
+      WhatsApp number:
+      +233 55 655 6080
+
+      WhatsApp requires the international format
+      without +, spaces, or leading zero.
+    */
+
+    const number =
+      '233556556080';
+
+    const msg =
+`ESTHER'S BIRTHDAY DINNER 💗
+
+Where: ${place}
+Date: ${date}
+Time: ${time}
+After dinner: ${after}
+
+Before I leave for school, I want to spend this beautiful evening with you. Happy birthday in advance, my love. ❤️`;
+
+    /*
+      encodeURIComponent makes sure spaces,
+      emojis and special characters work correctly.
+    */
+
+    const url =
+      `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
+
+    /*
+      Open the WhatsApp chat immediately
+      with the message already prepared.
+    */
+
+    window.open(
+      url,
+      '_blank'
+    );
+
+    document.getElementById(
+      'dateResponse'
+    ).textContent =
+      'Your dinner plan is ready. 💗 WhatsApp is opening our chat so you can send it to me.';
+
+    burst();
+    playChime();
+  });
